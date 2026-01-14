@@ -19,7 +19,8 @@ const Logo: React.FC<LogoProps> = ({ className = "w-48" }) => {
           const parent = target.parentElement;
           if (parent) {
             const fallback = document.createElement('div');
-            fallback.className = "text-[#1C1C1E] font-black tracking-[0.4em] text-2xl sm:text-3xl uppercase whitespace-nowrap";
+            // Reduced tracking from 0.4em to 0.2em
+            fallback.className = "text-[#1C1C1E] font-black tracking-[0.2em] text-2xl sm:text-3xl uppercase whitespace-nowrap";
             fallback.innerText = "SUSHI ROOM";
             parent.appendChild(fallback);
           }
