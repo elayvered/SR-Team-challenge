@@ -59,6 +59,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
     setSelectedTasks(prev => ({ ...prev, [task]: !prev[task] }));
   };
 
+  const downloadDataFile = () => {
+    const data = {
+      manualUpdateTime: manualUpdateTime,
+      employees: employees,
+      entries: entries
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'data.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -88,6 +105,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
   return (
     <div className="space-y-8 animate-in zoom-in-95 duration-500 pb-20">
       
+      {/* Important Notice */}
+      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-2xl text-center">
+        <p className="text-sm text-yellow-800 font-bold mb-2">⚠️ שים לב!</p>
+        <p className="text-xs text-yellow-700 leading-relaxed">
+          שינויים כאן נשמרים רק בדפדפן שלך. כדי לעדכן את האתר לכולם, עליך ללחוץ על "הורד קובץ נתונים" בתחתית העמוד ולהעלות את הקובץ data.json ל-GitHub.
+        </p>
+      </div>
+
       {/* Time Update Section */}
       <div className="apple-glass p-6 rounded-[32px] space-y-4">
         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">טקסט ״עודכן לאחרונה״</h3>
@@ -123,7 +148,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
 
           <div className="grid grid-cols-3 gap-3">
             <TaskToggle label="משמרת" active={selectedTasks.shift} onClick={() => toggleTask('shift')} color="blue" />
-            <TaskToggle label="אלכהול" active={selectedTasks.alcohol} onClick={() => toggleTask('alcohol')} color="indigo" />
+            <TaskToggle label="אלכוהול" active={selectedTasks.alcohol} onClick={() => toggleTask('alcohol')} color="indigo" />
             <TaskToggle label="ממוצע" active={selectedTasks.average} onClick={() => toggleTask('average')} color="pink" />
           </div>
 
@@ -150,6 +175,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
             );
           })}
         </div>
+      </div>
+
+      {/* Download Section */}
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/90 backdrop-blur-xl border-t border-gray-200 z-50 animate-in slide-in-from-bottom-10">
+         <button 
+          onClick={downloadDataFile}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95"
+         >
+           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+           </svg>
+           הורד קובץ נתונים (להעלאה ל-GitHub)
+         </button>
       </div>
     </div>
   );

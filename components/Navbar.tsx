@@ -2,7 +2,11 @@
 import React, { useState } from 'react';
 import Logo from './Logo';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  onAdminClick?: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = () => {
   const [showPrize, setShowPrize] = useState(false);
 
   return (
