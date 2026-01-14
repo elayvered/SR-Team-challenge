@@ -22,7 +22,7 @@ export const DEADLINE = new Date('2026-02-05T23:59:59');
 
 // --- COMPONENTS ---
 
-// Logo Component
+// 1. Logo Component
 const Logo: React.FC<{ className?: string }> = ({ className = "w-48" }) => {
   return (
     <div className={`flex items-center justify-center ${className}`}>
@@ -46,7 +46,7 @@ const Logo: React.FC<{ className?: string }> = ({ className = "w-48" }) => {
   );
 };
 
-// Navbar Component
+// 2. Navbar Component
 const Navbar: React.FC = () => {
   const [showPrize, setShowPrize] = useState(false);
 
@@ -129,7 +129,7 @@ const Navbar: React.FC = () => {
   );
 };
 
-// StatsSummary Component
+// 3. StatsSummary Component
 const TimeUnit: React.FC<{ value: number; label: string }> = ({ value, label }) => (
   <div className="flex flex-col items-center">
     <span className="text-3xl sm:text-4xl font-normal tracking-tighter text-[#1d1d1f]">
@@ -305,7 +305,7 @@ const StatsSummary: React.FC = () => {
   );
 };
 
-// Leaderboard Component
+// 4. Leaderboard Component
 const Leaderboard: React.FC<{ employees: Employee[] }> = ({ employees }) => {
   const sortedEmployees = [...employees].sort((a, b) => b.totalPoints - a.totalPoints);
 
@@ -366,7 +366,7 @@ const Leaderboard: React.FC<{ employees: Employee[] }> = ({ employees }) => {
   );
 };
 
-// Main App Component
+// 5. Main App Component
 const App: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [manualUpdateTime, setManualUpdateTime] = useState<string>('');
@@ -419,6 +419,7 @@ const App: React.FC = () => {
 
     } catch (err: any) {
       console.error("Data Fetch Error:", err);
+      // Even if error, if we have old data we might want to keep it, but here we show error
       setError(err.message || "שגיאה בטעינת הנתונים");
     } finally {
       setIsLoading(false);
@@ -453,14 +454,22 @@ const App: React.FC = () => {
         <StatsSummary />
 
         {error ? (
-           <div className="mt-8 p-6 bg-red-50 border border-red-100 rounded-3xl text-center space-y-2">
-             <p className="text-red-600 font-bold">שגיאה בטעינת נתונים</p>
-             <p className="text-red-400 text-sm">{error}</p>
-             <p className="text-gray-400 text-xs mt-4">
-               אנא וודא שקיים קובץ בשם <span className="font-mono bg-gray-100 px-1 rounded">ranking.xlsx</span> בתיקייה הראשית.
-               <br/>
-               עמודות חובה: <span className="font-bold">שם</span>, <span className="font-bold">נקודות</span>
-             </p>
+           <div className="mt-8 p-6 bg-red-50 border border-red-100 rounded-3xl text-center space-y-2 animate-in fade-in slide-in-from-bottom-2">
+             <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+               </svg>
+             </div>
+             <p className="text-red-900 font-bold text-lg">שגיאה בטעינת נתונים</p>
+             <p className="text-red-700 text-sm font-medium">{error}</p>
+             <div className="text-gray-500 text-xs mt-4 bg-white/50 p-4 rounded-xl text-right" dir="rtl">
+               <p className="font-bold mb-1">הוראות לפתרון:</p>
+               <ol className="list-decimal list-inside space-y-1">
+                 <li>צור קובץ אקסל במחשב בשם <span className="font-mono bg-gray-200 px-1 rounded text-black">ranking.xlsx</span></li>
+                 <li>ודא שיש עמודות: <b>שם</b>, <b>נקודות</b></li>
+                 <li>העלה את הקובץ לתיקייה הראשית ב-GitHub</li>
+               </ol>
+             </div>
            </div>
         ) : (
           <>

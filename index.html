@@ -7,7 +7,7 @@
     <title>SUSHI ROOM Competition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Babel for in-browser compilation -->
+    <!-- Babel is required to run React directly in the browser without a build step -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
       :root {
@@ -112,8 +112,8 @@
     <script type="importmap">
 {
   "imports": {
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.mjs",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/"
@@ -128,7 +128,7 @@
       <div class="blob blob-3"></div>
     </div>
     <div id="root"></div>
-    <!-- Changed to text/babel and added data-presets for direct execution -->
+    <!-- Pointing to index.tsx with Babel text/babel type -->
     <script type="text/babel" data-type="module" data-presets="react,typescript" src="./index.tsx"></script>
   </body>
 </html>
