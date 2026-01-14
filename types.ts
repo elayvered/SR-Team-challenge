@@ -24,5 +24,6 @@ export const POINT_VALUES = {
   AVERAGE: 6
 };
 
-// Updated year to 2026 so the competition appears as active
+// תקופת התחרות: 11/1 עד 5/2
+export const START_DATE = new Date('2026-01-11T00:00:00');
 export const DEADLINE = new Date('2026-02-05T23:59:59');

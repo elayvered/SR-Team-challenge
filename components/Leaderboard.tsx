@@ -11,70 +11,57 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ employees }) => {
 
   if (employees.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 opacity-30">
-        <div className="w-20 h-20 border-2 border-teal-500/30 rounded-full mb-6 flex items-center justify-center">
-          <div className="w-12 h-12 border-2 border-teal-500/50 rounded-full animate-pulse"></div>
-        </div>
-        <p className="text-xl tracking-widest">אין נתונים</p>
+      <div className="flex flex-col items-center justify-center py-20 opacity-30">
+        <p className="text-lg tracking-[0.2em] font-light text-gray-500">אין נתונים זמינים</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      <div className="text-center mb-10">
-        <h2 className="text-xs uppercase tracking-widest-luxury text-teal-400 font-bold mb-2">Sushi Room Team</h2>
-        <h3 className="text-4xl font-extralight tracking-tight">דירוג תחרות</h3>
-      </div>
-
-      <div className="space-y-4">
-        {sortedEmployees.map((employee, index) => {
-          const isTopTwo = index < 2;
-          return (
-            <div 
-              key={employee.id}
-              className={`relative flex items-center justify-between p-4 px-8 silk-card transition-all duration-700 hover:scale-[1.01] ${
-                isTopTwo 
-                ? 'silk-pill-active scale-[1.03] shadow-[0_0_40px_rgba(20,184,166,0.15)]' 
-                : 'hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-8">
-                <div className={`w-10 h-10 flex items-center justify-center rounded-full font-bold text-sm ${
-                  index === 0 ? 'bg-teal-400 text-[#0B3037] shadow-[0_0_20px_rgba(45,212,191,0.6)]' :
-                  index === 1 ? 'bg-teal-700 text-teal-100 shadow-[0_0_15px_rgba(19,78,94,0.4)]' :
-                  'bg-white/5 text-teal-500/50 border border-white/5'
-                }`}>
-                  {index + 1}
-                </div>
-                <div>
-                  <h3 className={`text-lg font-medium tracking-wide ${isTopTwo ? 'text-white' : 'text-teal-100/80'}`}>
-                    {employee.fullName}
-                  </h3>
-                  {isTopTwo && (
-                    <span className="text-[10px] uppercase tracking-widest text-teal-300 font-bold opacity-80">
-                      {index === 0 ? 'Supreme Leader' : 'Rising Star'}
-                    </span>
-                  )}
-                </div>
+    <div className="space-y-2.5 pb-20 animate-in slide-in-from-bottom-8 duration-700">
+      {sortedEmployees.map((employee, index) => {
+        const isOne = index === 0;
+        const isTwo = index === 1;
+        
+        return (
+          <div 
+            key={employee.id}
+            className={`group relative flex items-center justify-between p-3 sm:p-4 apple-card transition-all duration-500 hover:scale-[1.01] ${
+              isOne ? 'top-one-glow' : isTwo ? 'top-two-glow' : 'hover:bg-white'
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-[14px] font-black text-base transition-all duration-500 ${
+                isOne ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/40 scale-105' :
+                isTwo ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40' :
+                'bg-gray-100 text-gray-500'
+              }`}>
+                {index + 1}
               </div>
-
-              <div className="flex flex-col items-end">
-                <span className={`text-3xl font-light tracking-tighter ${isTopTwo ? 'text-teal-400 text-glow' : 'text-white/70'}`}>
-                  {employee.totalPoints}
-                </span>
-                <span className="text-[9px] uppercase tracking-widest text-teal-500/40">ניקוד כולל</span>
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-[#1C1C1E] leading-none">
+                  {employee.fullName}
+                </h3>
+                {index < 2 && (
+                  <span className={`text-[9px] uppercase tracking-[0.2em] font-black mt-1 block ${isOne ? 'text-blue-600' : 'text-indigo-600'}`}>
+                    {isOne ? 'SUPREME CHAMPION' : 'ELITE STAR'}
+                  </span>
+                )}
               </div>
-              
-              {isTopTwo && (
-                <div className="absolute top-1/2 -right-1 -translate-y-1/2">
-                   <div className="h-12 w-[3px] bg-teal-400 rounded-full blur-[1px]"></div>
-                </div>
-              )}
             </div>
-          );
-        })}
-      </div>
+
+            <div className="flex flex-col items-end">
+              <span className={`text-2xl sm:text-3xl font-black tracking-tighter leading-none ${isOne ? 'text-blue-600' : isTwo ? 'text-indigo-600' : 'text-[#1C1C1E]'}`}>
+                {employee.totalPoints}
+              </span>
+              <span className="text-[8px] uppercase tracking-widest text-gray-400 font-extrabold mt-0.5">Points</span>
+            </div>
+
+            {isOne && <div className="absolute -left-2 -top-2 text-3xl animate-bounce">🥇</div>}
+            {isTwo && <div className="absolute -left-2 -top-2 text-2xl opacity-90">🥈</div>}
+          </div>
+        );
+      })}
     </div>
   );
 };

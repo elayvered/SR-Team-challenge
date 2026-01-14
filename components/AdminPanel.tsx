@@ -5,18 +5,21 @@ import { Employee, ScoreEntry, POINT_VALUES } from '../types';
 interface AdminPanelProps {
   employees: Employee[];
   entries: ScoreEntry[];
+  manualUpdateTime: string;
   onAddScore: (name: string, points: number, reason: string) => void;
   onDeleteEntry: (id: string) => void;
+  onUpdateManualTime: (time: string) => void;
 }
 
 const ADMIN_CODE = "77654";
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore, onDeleteEntry }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore, onDeleteEntry, manualUpdateTime, onUpdateManualTime }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(false);
 
   const [fullName, setFullName] = useState('');
+  const [newTime, setNewTime] = useState('');
   const [selectedTasks, setSelectedTasks] = useState<{ [key: string]: boolean }>({
     shift: false,
     alcohol: false,
@@ -28,6 +31,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
     if (passcode === ADMIN_CODE) {
       setIsAuthenticated(true);
       setError(false);
+      setNewTime(manualUpdateTime);
     } else {
       setError(true);
       setPasscode('');
@@ -38,12 +42,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
     e.preventDefault();
     if (!fullName.trim()) return;
 
-    if (selectedTasks.shift) onAddScore(fullName, POINT_VALUES.SHIFT, 'ביצוע משמרת');
+    if (selectedTasks.shift) onAddScore(fullName, POINT_VALUES.SHIFT, 'משמרת');
     if (selectedTasks.alcohol) onAddScore(fullName, POINT_VALUES.ALCOHOL, 'אלכוהול');
-    if (selectedTasks.average) onAddScore(fullName, POINT_VALUES.AVERAGE, 'ממוצע לסועד');
+    if (selectedTasks.average) onAddScore(fullName, POINT_VALUES.AVERAGE, 'ממוצע');
 
     setFullName('');
     setSelectedTasks({ shift: false, alcohol: false, average: false });
+  };
+
+  const handleTimeUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    onUpdateManualTime(newTime);
   };
 
   const toggleTask = (task: string) => {
@@ -52,154 +61,111 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ employees, entries, onAddScore,
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-700">
-        <div className="silk-glass p-10 rounded-[3rem] w-full max-w-md text-center space-y-8">
-          <div>
-            <div className="w-16 h-16 bg-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-teal-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="text-teal-400" viewBox="0 0 16 16">
-                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-              </svg>
-            </div>
-            <h3 className="text-2xl font-light tracking-tight">כניסת מנהל</h3>
-            <p className="text-xs uppercase tracking-widest text-teal-500/50 mt-2">Authentication Required</p>
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="apple-glass p-8 rounded-[40px] w-full max-w-sm text-center space-y-8">
+          <div className="w-16 h-16 bg-blue-500/10 rounded-3xl flex items-center justify-center mx-auto mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="text-blue-500">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
           </div>
-
+          <h3 className="text-xl font-bold text-gray-900 tracking-tight">כניסת מנהל</h3>
           <form onSubmit={handleAuth} className="space-y-4">
             <input
               type="password"
               value={passcode}
-              onChange={(e) => {
-                setPasscode(e.target.value);
-                setError(false);
-              }}
-              placeholder="הכנס קוד מנהל"
-              className={`w-full bg-white/5 border ${error ? 'border-red-500' : 'border-white/10'} rounded-full px-6 py-4 text-center text-xl tracking-[0.5em] focus:outline-none focus:border-teal-500/50 transition-all`}
+              onChange={(e) => { setPasscode(e.target.value); setError(false); }}
+              placeholder="קוד גישה"
+              className={`w-full bg-gray-50 border ${error ? 'border-red-500' : 'border-gray-200'} rounded-2xl px-6 py-4 text-center text-xl tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
               autoFocus
             />
-            {error && <p className="text-red-400 text-xs font-bold uppercase tracking-widest">קוד שגוי, נסה שוב</p>}
-            <button 
-              type="submit"
-              className="w-full bg-teal-500 text-[#0B3037] font-bold py-4 rounded-full uppercase tracking-widest text-xs hover:bg-teal-400 transition-all active:scale-95"
-            >
-              התחבר למערכת
-            </button>
+            <button type="submit" className="w-full bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all">התחבר</button>
           </form>
         </div>
       </div>
     );
   }
 
-  const recentEntries = entries.slice(0, 8);
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 animate-in zoom-in-95 duration-500">
-      <div className="space-y-8">
-        <div className="text-right">
-          <h2 className="text-xs uppercase tracking-widest-luxury text-teal-400 font-bold mb-2">Operations</h2>
-          <h3 className="text-2xl font-light">הזנת נתונים</h3>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <input
-              type="text"
-              list="employees-list"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="שם העובד"
-              className="w-full bg-white/5 border border-white/10 rounded-full px-8 py-4 focus:outline-none focus:border-teal-500/50 focus:bg-white/10 transition-all text-center text-lg placeholder:text-teal-100/20"
-              required
-            />
-            <datalist id="employees-list">
-              {employees.map(emp => <option key={emp.id} value={emp.fullName} />)}
-            </datalist>
-          </div>
-
-          <div className="space-y-3">
-            <TaskToggle 
-              label="משמרת" 
-              points={POINT_VALUES.SHIFT}
-              active={selectedTasks.shift} 
-              onClick={() => toggleTask('shift')} 
-            />
-            <TaskToggle 
-              label="אלכוהול" 
-              points={POINT_VALUES.ALCOHOL}
-              active={selectedTasks.alcohol} 
-              onClick={() => toggleTask('alcohol')} 
-            />
-            <TaskToggle 
-              label="ממוצע לסועד" 
-              points={POINT_VALUES.AVERAGE}
-              active={selectedTasks.average} 
-              onClick={() => toggleTask('average')} 
-            />
-          </div>
-
-          <button 
-            type="submit"
-            disabled={!fullName || !Object.values(selectedTasks).some(v => v)}
-            className="w-full bg-teal-500 hover:bg-teal-400 disabled:opacity-20 text-[#0B3037] font-bold py-5 rounded-full shadow-[0_0_30px_rgba(20,184,166,0.2)] transition-all active:scale-95 uppercase tracking-widest text-xs"
-          >
-            Update Stats
+    <div className="space-y-8 animate-in zoom-in-95 duration-500 pb-20">
+      
+      {/* Time Update Section */}
+      <div className="apple-glass p-6 rounded-[32px] space-y-4">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">טקסט ״עודכן לאחרונה״</h3>
+        <form onSubmit={handleTimeUpdate} className="flex gap-4">
+          <input 
+            type="text" 
+            value={newTime}
+            onChange={(e) => setNewTime(e.target.value)}
+            placeholder="לדוגמא: 12:00"
+            className="flex-1 bg-white/50 border border-gray-200 rounded-xl px-4 py-3 text-right focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          />
+          <button type="submit" className="bg-black text-white px-6 py-3 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-transform">
+            שמור
           </button>
         </form>
       </div>
 
-      <div className="space-y-8">
-        <div className="text-right">
-          <h2 className="text-xs uppercase tracking-widest-luxury text-teal-400 font-bold mb-2">Activity</h2>
-          <h3 className="text-2xl font-light">פעולות אחרונות</h3>
-        </div>
-        
-        <div className="space-y-3">
-          {recentEntries.length === 0 ? (
-            <div className="h-64 flex items-center justify-center border border-dashed border-white/10 rounded-[2rem] opacity-20">
-               <p className="text-sm tracking-widest uppercase">No Recent Activity</p>
-            </div>
-          ) : (
-            recentEntries.map(entry => {
-              const emp = employees.find(e => e.id === entry.employeeId);
-              return (
-                <div key={entry.id} className="flex justify-between items-center p-4 px-6 rounded-full bg-white/5 border border-white/5 hover:border-teal-500/20 transition-all group">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm text-teal-100">{emp?.fullName || '---'}</span>
-                    <span className="text-[10px] text-teal-500/50 uppercase tracking-tighter">{entry.reason}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-teal-400 font-black text-lg">+{entry.points}</span>
-                    <button 
-                      onClick={() => onDeleteEntry(entry.id)}
-                      className="text-white/10 hover:text-red-400 transition-colors p-1"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                      </svg>
-                    </button>
-                  </div>
+      <div className="apple-glass p-8 rounded-[40px] space-y-8">
+        <h3 className="text-lg font-bold text-gray-900">הזנת נתונים חדשים</h3>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <input
+            type="text"
+            list="employees-list"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="שם העובד"
+            className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-right"
+            required
+          />
+          <datalist id="employees-list">
+            {employees.map(emp => <option key={emp.id} value={emp.fullName} />)}
+          </datalist>
+
+          <div className="grid grid-cols-3 gap-3">
+            <TaskToggle label="משמרת" active={selectedTasks.shift} onClick={() => toggleTask('shift')} color="blue" />
+            <TaskToggle label="אלכהול" active={selectedTasks.alcohol} onClick={() => toggleTask('alcohol')} color="indigo" />
+            <TaskToggle label="ממוצע" active={selectedTasks.average} onClick={() => toggleTask('average')} color="pink" />
+          </div>
+
+          <button type="submit" disabled={!fullName || !Object.values(selectedTasks).some(v => v)} className="w-full bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 disabled:opacity-30">עדכן דירוג</button>
+        </form>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest px-4">היסטוריית פעולות</h3>
+        <div className="space-y-2">
+          {entries.slice(0, 10).map(entry => {
+            const emp = employees.find(e => e.id === entry.employeeId);
+            return (
+              <div key={entry.id} className="apple-card p-4 flex justify-between items-center group">
+                <div className="text-right">
+                  <span className="block font-bold text-gray-900">{emp?.fullName}</span>
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">{entry.reason}</span>
                 </div>
-              );
-            })
-          )}
+                <div className="flex items-center gap-4">
+                  <span className="text-lg font-black text-blue-500">+{entry.points}</span>
+                  <button onClick={() => confirm('מחק?') && onDeleteEntry(entry.id)} className="text-gray-200 hover:text-red-500 p-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1z"/></svg></button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 };
 
-const TaskToggle: React.FC<{ label: string; points: number; active: boolean; onClick: () => void }> = ({ label, points, active, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`w-full flex items-center justify-between p-4 px-8 rounded-full border transition-all duration-300 ${
-      active 
-      ? 'bg-teal-500/20 border-teal-500 text-teal-100' 
-      : 'bg-white/5 border-white/5 text-teal-100/30 hover:bg-white/10'
-    }`}
-  >
-    <span className="text-sm font-medium tracking-wide uppercase">{label}</span>
-    <span className={`text-xs font-bold ${active ? 'text-teal-400' : 'text-white/10'}`}>{points} PTS</span>
-  </button>
-);
+const TaskToggle: React.FC<{ label: string; active: boolean; onClick: () => void; color: string }> = ({ label, active, onClick, color }) => {
+  const colorMap: any = {
+    blue: active ? 'bg-blue-500 text-white' : 'bg-blue-50 text-blue-500',
+    indigo: active ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-500',
+    pink: active ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-500'
+  };
+  return (
+    <button type="button" onClick={onClick} className={`flex flex-col items-center justify-center p-4 rounded-[20px] transition-all duration-300 border ${active ? 'border-transparent shadow-lg' : 'border-transparent'} ${colorMap[color]}`}>
+      <span className="text-[10px] font-black uppercase tracking-wider">{label}</span>
+    </button>
+  );
+};
 
 export default AdminPanel;

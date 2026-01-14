@@ -1,91 +1,67 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, Employee, ScoreEntry, DEADLINE } from './types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Employee } from './types';
 import Leaderboard from './components/Leaderboard';
-import AdminPanel from './components/AdminPanel';
 import Navbar from './components/Navbar';
 import StatsSummary from './components/StatsSummary';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>(View.LEADERBOARD);
-  const [employees, setEmployees] = useState<Employee[]>(() => {
-    const saved = localStorage.getItem('sushi_employees');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [entries, setEntries] = useState<ScoreEntry[]>(() => {
-    const saved = localStorage.getItem('sushi_entries');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [manualUpdateTime, setManualUpdateTime] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Sync with LocalStorage
-  useEffect(() => {
-    localStorage.setItem('sushi_employees', JSON.stringify(employees));
-  }, [employees]);
-
-  useEffect(() => {
-    localStorage.setItem('sushi_entries', JSON.stringify(entries));
-  }, [entries]);
-
-  const addScore = (employeeName: string, points: number, reason: string) => {
-    let emp = employees.find(e => e.fullName === employeeName);
-    
-    if (!emp) {
-      emp = {
-        id: crypto.randomUUID(),
-        fullName: employeeName,
-        totalPoints: 0
-      };
-      setEmployees(prev => [...prev, emp!]);
+  const fetchData = useCallback(async () => {
+    try {
+      // Adding timestamp to prevent browser caching so updates appear immediately
+      const response = await fetch(`./data.json?t=${new Date().getTime()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data) {
+          if (data.employees) setEmployees(data.employees);
+          if (data.manualUpdateTime) setManualUpdateTime(data.manualUpdateTime);
+        }
+      }
+    } catch (error) {
+      console.error("Data Fetch Error:", error);
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    const newEntry: ScoreEntry = {
-      id: crypto.randomUUID(),
-      employeeId: emp.id,
-      points,
-      reason,
-      date: new Date().toISOString()
-    };
+  useEffect(() => {
+    fetchData();
+    // Poll for changes every 30 seconds
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
-    setEntries(prev => [newEntry, ...prev]);
-    setEmployees(prev => prev.map(e => 
-      e.id === emp!.id ? { ...e, totalPoints: e.totalPoints + points } : e
-    ));
-  };
-
-  const deleteEntry = (entryId: string) => {
-    const entryToDelete = entries.find(e => e.id === entryId);
-    if (!entryToDelete) return;
-
-    setEntries(prev => prev.filter(e => e.id !== entryId));
-    setEmployees(prev => prev.map(e => 
-      e.id === entryToDelete.employeeId 
-        ? { ...e, totalPoints: Math.max(0, e.totalPoints - entryToDelete.points) } 
-        : e
-    ));
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-6">
+        <div className="w-12 h-12 border-[3px] border-gray-100 border-t-blue-500 rounded-full animate-spin"></div>
+        <div className="text-center">
+          <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Sushi Room Cloud</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pb-20">
-      <Navbar currentView={currentView} setView={setCurrentView} />
+    <div className="min-h-screen text-[#1C1C1E] pb-24">
+      <Navbar />
       
-      <main className="container mx-auto px-4 pt-6 max-w-4xl">
-        <StatsSummary entries={entries} employees={employees} />
+      <main className="container mx-auto px-4 sm:px-6 pt-0 max-w-xl">
+        <StatsSummary />
 
-        {currentView === View.LEADERBOARD ? (
-          <Leaderboard employees={employees} />
-        ) : (
-          <AdminPanel 
-            employees={employees} 
-            entries={entries} 
-            onAddScore={addScore}
-            onDeleteEntry={deleteEntry}
-          />
+        {manualUpdateTime && (
+          <div className="mb-2 px-2 flex justify-start animate-in fade-in slide-in-from-top-1 duration-500">
+            <span className="text-[10px] font-bold text-gray-400 tracking-wider bg-gray-100/50 px-2 py-0.5 rounded-md">
+              עודכן לאחרונה: <span className="text-gray-600">{manualUpdateTime}</span>
+            </span>
+          </div>
         )}
+        <Leaderboard employees={employees} />
       </main>
-
-      <footer className="fixed bottom-0 left-0 w-full glass py-3 border-t border-white/10 text-center text-sm text-gray-400">
-        © {new Date().getFullYear()} SUSHI ROOM Team Competition
-      </footer>
     </div>
   );
 };
