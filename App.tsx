@@ -37,13 +37,31 @@ const App: React.FC = () => {
       // Convert to JSON
       const data: any[] = XLSX.utils.sheet_to_json(sheet);
 
-      // Map Excel columns to Employee structure
-      // Supporting Hebrew and English headers
-      const mappedEmployees: Employee[] = data.map((row: any, index: number) => ({
+      // Aggregation Logic
+      const pointsMap = new Map<string, number>();
+
+      data.forEach((row) => {
+        const rawName = row['שם'] || row['Name'] || row['name'];
+        if (!rawName) return;
+
+        // Normalize: trim whitespace
+        const normalizedName = String(rawName).trim();
+        if (!normalizedName || normalizedName === 'שם לא ידוע') return;
+
+        const points = Number(row['נקודות'] || row['Points'] || row['points'] || 0);
+
+        if (pointsMap.has(normalizedName)) {
+          pointsMap.set(normalizedName, (pointsMap.get(normalizedName) || 0) + points);
+        } else {
+          pointsMap.set(normalizedName, points);
+        }
+      });
+
+      const mappedEmployees: Employee[] = Array.from(pointsMap.entries()).map(([name, points], index) => ({
         id: String(index),
-        fullName: row['שם'] || row['Name'] || row['name'] || 'שם לא ידוע',
-        totalPoints: Number(row['נקודות'] || row['Points'] || row['points'] || 0)
-      })).filter(emp => emp.fullName !== 'שם לא ידוע'); // Filter empty rows
+        fullName: name,
+        totalPoints: points
+      }));
 
       // Try to find update time from a specific column if exists, or just use current time string if provided in the sheet
       // Looking for a column named 'Update' or 'עדכון' in the first row

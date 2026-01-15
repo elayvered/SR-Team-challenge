@@ -523,11 +523,31 @@
                 const sheet = workbook.Sheets[sheetName];
                 const data = XLSX.utils.sheet_to_json(sheet);
 
-                const mappedEmployees = data.map((row, index) => ({
+                // Aggregation Logic
+                const pointsMap = new Map();
+
+                data.forEach((row) => {
+                    const rawName = row['שם'] || row['Name'] || row['name'];
+                    if (!rawName) return;
+
+                    // Normalize: trim whitespace
+                    const normalizedName = String(rawName).trim();
+                    if (!normalizedName || normalizedName === 'שם לא ידוע') return;
+
+                    const points = Number(row['נקודות'] || row['Points'] || row['points'] || 0);
+
+                    if (pointsMap.has(normalizedName)) {
+                        pointsMap.set(normalizedName, pointsMap.get(normalizedName) + points);
+                    } else {
+                        pointsMap.set(normalizedName, points);
+                    }
+                });
+
+                const mappedEmployees = Array.from(pointsMap.entries()).map(([name, points], index) => ({
                     id: String(index),
-                    fullName: row['שם'] || row['Name'] || row['name'] || 'שם לא ידוע',
-                    totalPoints: Number(row['נקודות'] || row['Points'] || row['points'] || 0)
-                })).filter(emp => emp.fullName !== 'שם לא ידוע');
+                    fullName: name,
+                    totalPoints: points
+                }));
 
                 if (data.length > 0) {
                     const firstRow = data[0];
