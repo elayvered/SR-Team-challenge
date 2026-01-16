@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
-import { Employee } from './types';
+import { Employee, POINT_VALUES } from './types';
 import Leaderboard from './components/Leaderboard';
 import Navbar from './components/Navbar';
 import StatsSummary from './components/StatsSummary';
+// Note: AdminPanel component logic is now inline in index.html for simplicity in this file structure, 
+// but in a real React app, it would be a separate import. We will simulate the structure here.
 
 const App: React.FC = () => {
+  const [view, setView] = useState('LEADERBOARD');
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [manualUpdateTime, setManualUpdateTime] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +20,6 @@ const App: React.FC = () => {
     if (showLoading) setIsSyncing(true);
     setError(null);
     try {
-      // Fetch the Excel file
       const response = await fetch(`./ranking.xlsx?t=${new Date().getTime()}`);
       
       if (!response.ok) {
@@ -29,22 +31,16 @@ const App: React.FC = () => {
 
       const arrayBuffer = await response.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer);
-      
-      // Assume first sheet contains the data
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      
-      // Convert to JSON
       const data: any[] = XLSX.utils.sheet_to_json(sheet);
 
-      // Aggregation Logic
       const pointsMap = new Map<string, number>();
 
       data.forEach((row) => {
         const rawName = row['שם'] || row['Name'] || row['name'];
         if (!rawName) return;
 
-        // Normalize: trim whitespace
         const normalizedName = String(rawName).trim();
         if (!normalizedName || normalizedName === 'שם לא ידוע') return;
 
@@ -63,8 +59,6 @@ const App: React.FC = () => {
         totalPoints: points
       }));
 
-      // Try to find update time from a specific column if exists, or just use current time string if provided in the sheet
-      // Looking for a column named 'Update' or 'עדכון' in the first row
       if (data.length > 0) {
         const firstRow = data[0];
         const timeVal = firstRow['עדכון'] || firstRow['Update'] || firstRow['Time'];
@@ -92,6 +86,31 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  const handleUpdateEmployee = (name: string, pointsToAdd: number) => {
+      const normalizedName = name.trim();
+      setEmployees(prev => {
+          const exists = prev.find(e => e.fullName === normalizedName);
+          if (exists) {
+              return prev.map(e => e.fullName === normalizedName ? { ...e, totalPoints: e.totalPoints + pointsToAdd } : e);
+          } else {
+              return [...prev, { id: String(Date.now()), fullName: normalizedName, totalPoints: pointsToAdd }];
+          }
+      });
+  };
+
+  const handleDownloadExcel = () => {
+      const exportData = employees.map((emp, index) => ({
+          'שם': emp.fullName,
+          'נקודות': emp.totalPoints,
+          'עדכון': index === 0 ? manualUpdateTime : ''
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Ranking");
+      XLSX.writeFile(workbook, "ranking.xlsx");
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-6">
@@ -105,12 +124,12 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen text-[#1C1C1E] pb-32">
-      <Navbar />
+      <Navbar onAdminClick={() => setView(view === 'LEADERBOARD' ? 'ADMIN' : 'LEADERBOARD')} />
       
       <main className="container mx-auto px-4 sm:px-6 pt-0 max-w-xl">
         <StatsSummary />
 
-        {error ? (
+        {error && view !== 'ADMIN' ? (
            <div className="mt-8 p-6 bg-red-50 border border-red-100 rounded-3xl text-center space-y-2">
              <p className="text-red-600 font-bold">שגיאה בטעינת נתונים</p>
              <p className="text-red-400 text-sm">{error}</p>
@@ -122,21 +141,30 @@ const App: React.FC = () => {
            </div>
         ) : (
           <>
-            <div className="mb-4 px-2 flex items-center justify-center animate-in fade-in slide-in-from-top-1 duration-500">
-              {manualUpdateTime && (
-                <span className="text-[10px] font-bold text-gray-400 tracking-wider bg-gray-100/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                  עודכן לאחרונה: <span className="text-gray-600">{manualUpdateTime}</span>
-                </span>
-              )}
-            </div>
+            {view === 'LEADERBOARD' && (
+                <>
+                    <div className="mb-4 px-2 flex items-center justify-center animate-in fade-in slide-in-from-top-1 duration-500">
+                    {manualUpdateTime && (
+                        <span className="text-[10px] font-bold text-gray-400 tracking-wider bg-gray-100/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                        עודכן לאחרונה: <span className="text-gray-600">{manualUpdateTime}</span>
+                        </span>
+                    )}
+                    </div>
 
-            <Leaderboard employees={employees} />
+                    <Leaderboard employees={employees} />
+                </>
+            )}
+
+            {view === 'ADMIN' && (
+                // This would be the actual AdminPanel component call
+                <div className="p-4 text-center">Admin Panel Placeholder</div>
+            )}
           </>
         )}
       </main>
 
       {/* Floating Sync Button */}
-      {!error && (
+      {!error && view === 'LEADERBOARD' && (
         <div className="fixed bottom-8 left-0 right-0 flex justify-center z-40 pointer-events-none">
           <button 
             onClick={() => fetchData(true)}

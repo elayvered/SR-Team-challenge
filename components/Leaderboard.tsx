@@ -70,7 +70,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ employees }) => {
                                       {member.fullName}
                                   </span>
                                   {idx < group.members.length - 1 && (
-                                      <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-black tracking-widest mx-1">VS</span>
+                                      <span className="text-[10px] text-gray-400 font-black tracking-widest mx-1">VS</span>
                                   )}
                               </React.Fragment>
                           ))}
@@ -83,7 +83,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ employees }) => {
 
                 {(isGold || isSilver) && (
                   <span className={`text-[9px] uppercase tracking-[0.2em] font-black mt-1 block ${isGold ? 'text-blue-600' : 'text-indigo-600'}`}>
-                    {isGold ? 'SUPREME CHAMPION' : 'ELITE STAR'}
+                    {isGold ? 'Sushi Master' : 'Junior Sushi Master'}
                   </span>
                 )}
               </div>
